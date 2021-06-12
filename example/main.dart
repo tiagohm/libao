@@ -9,7 +9,7 @@ void main() {
   ao.initialize();
 
   final driverId = ao.defaultDriverId();
-  
+
   print(ao.driverInfo(driverId));
 
   const bits = 16;
