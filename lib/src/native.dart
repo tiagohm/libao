@@ -4,11 +4,11 @@ import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
 
-class _Device extends Struct {}
+class _Device extends Opaque {}
 
 /// Represents an open device.
 class Device {
-  final _Device _device;
+  final Pointer<_Device> _device;
 
   Device._(this._device);
 }
@@ -50,9 +50,9 @@ class Info {
 
   Info._(_Info info)
       : type = _intToOutputType(info.type),
-        name = Utf8.fromUtf8(info.name),
-        shortName = Utf8.fromUtf8(info.shortName),
-        comment = Utf8.fromUtf8(info.comment),
+        name = info.name.toDartString(),
+        shortName = info.shortName.toDartString(),
+        comment = info.comment.toDartString(),
         byteFormat = info.byteFormat,
         priority = info.priority;
 
@@ -217,7 +217,7 @@ class Libao {
   /// Looks up the ID number for a driver based upon its short name.
   /// The ID number is need to open the driver or get info on it.
   int driverId(String shortname) {
-    return _driverId(Utf8.toUtf8(shortname));
+    return _driverId(shortname.toNativeUtf8());
   }
 
   /// Returns the ID number of the default live output driver.
@@ -232,14 +232,14 @@ class Libao {
   /// Gets a list of information for all of the available drivers.
   List<Info> driverInfoList() {
     final res = <Info>[];
-    final count = allocate<Int32>();
+    final count = calloc<Int32>();
     final pointer = _driverInfoList(count);
 
     for (var i = 0; i < count.value; i++) {
       res.add(Info._(pointer.elementAt(i).value.ref));
     }
 
-    free(count);
+    calloc.free(count);
 
     return res;
   }
@@ -256,18 +256,18 @@ class Libao {
     ByteFormat byteFormat = ByteFormat.little,
     String matrix,
   }) {
-    final sampleFormat = allocate<_SampleFormat>();
+    final sampleFormat = calloc<_SampleFormat>();
     sampleFormat.ref.bits = bits;
     sampleFormat.ref.rate = rate;
     sampleFormat.ref.channels = channels;
     sampleFormat.ref.byteFormat = _byteFormatToInt(byteFormat);
-    if (matrix != null) sampleFormat.ref.matrix = Utf8.toUtf8(matrix);
+    if (matrix != null) sampleFormat.ref.matrix = matrix.toNativeUtf8();
 
-    final device = _openLive(driverId, sampleFormat, nullptr).ref;
+    final device = _openLive(driverId, sampleFormat, nullptr).address;
 
-    free(sampleFormat);
+    calloc.free(sampleFormat);
 
-    return Device._(device);
+    return Device._(Pointer.fromAddress(device));
   }
 
   /// Open a file for audio output.
@@ -281,20 +281,20 @@ class Libao {
     ByteFormat byteFormat = ByteFormat.little,
     String matrix,
   }) {
-    final sampleFormat = allocate<_SampleFormat>();
+    final sampleFormat = calloc<_SampleFormat>();
     sampleFormat.ref.bits = bits;
     sampleFormat.ref.rate = rate;
     sampleFormat.ref.channels = channels;
     sampleFormat.ref.byteFormat = _byteFormatToInt(byteFormat);
-    if (matrix != null) sampleFormat.ref.matrix = Utf8.toUtf8(matrix);
+    if (matrix != null) sampleFormat.ref.matrix = matrix.toNativeUtf8();
 
     final device =
-        _openFile(driverId, Utf8.toUtf8(filename), 1, sampleFormat, nullptr)
-            .ref;
+        _openFile(driverId, filename.toNativeUtf8(), 1, sampleFormat, nullptr)
+            .address;
 
-    free(sampleFormat);
+    calloc.free(sampleFormat);
 
-    return Device._(device);
+    return Device._(Pointer.fromAddress(device));
   }
 
   /// Play a block of audio data to an open device.
@@ -303,19 +303,19 @@ class Libao {
     Device device,
     Uint8List samples,
   ) {
-    final data = allocate<Int8>(count: samples.lengthInBytes);
+    final data = calloc<Int8>(samples.lengthInBytes);
 
     for (var i = 0; i < samples.length; i++) {
       data[i] = samples[i];
     }
 
     try {
-      return _play(device._device.addressOf, data, samples.lengthInBytes) != 0;
+      return _play(device._device, data, samples.lengthInBytes) != 0;
     } finally {
-      free(data);
+      calloc.free(data);
     }
   }
 
   /// Closes the audio device and frees the memory allocated by the device.
-  bool close(Device device) => _close(device._device.addressOf) != 0;
+  bool close(Device device) => _close(device._device) != 0;
 }
