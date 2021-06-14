@@ -22,6 +22,15 @@ Libao is a cross-platform audio library that allows programs to output audio usi
 * RoarAudio (Modern, multi-OS, networked Sound System)
 * OpenBSD's sndio
 
+## Installation
+
+In `pubspec.yaml` add the following dependency:
+
+```yaml
+dependencies:
+  libao: ^0.2.0
+```
+
 ## Example
 
 ```dart

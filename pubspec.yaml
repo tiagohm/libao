@@ -1,6 +1,6 @@
 name: libao
 description: A Dart wrapper for the libao library to output audio using a simple API on a wide variety of platforms.
-version: 0.1.0
+version: 0.2.0
 homepage: https://github.com/tiagohm/libao
 
 environment:
