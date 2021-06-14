@@ -15,17 +15,17 @@ class Device {
 
 class _Info extends Struct {
   @Int32()
-  int type;
-  Pointer<Utf8> name;
-  Pointer<Utf8> shortName;
-  Pointer<Utf8> comment;
+  int? type;
+  external Pointer<Utf8> name;
+  external Pointer<Utf8> shortName;
+  external Pointer<Utf8> comment;
   @Int32()
-  int byteFormat;
+  int? byteFormat;
   @Int32()
-  int priority;
-  Pointer<Pointer<Utf8>> options;
+  int? priority;
+  Pointer<Pointer<Utf8>>? options;
   @Int32()
-  int optionCount;
+  int? optionCount;
 }
 
 /// Holds the attributes of an output driver
@@ -43,10 +43,10 @@ class Info {
   final String comment;
 
   /// Specifies the preferred ordering of the sample bytes.
-  final int byteFormat;
+  final int? byteFormat;
 
   /// A positive integer ranking how likely it is for this driver to be the default.
-  final int priority;
+  final int? priority;
 
   Info._(_Info info)
       : type = _intToOutputType(info.type),
@@ -64,20 +64,20 @@ class Info {
 
 class _SampleFormat extends Struct {
   @Int32()
-  int bits;
+  int? bits;
   @Int32()
-  int rate;
+  int? rate;
   @Int32()
-  int channels;
+  int? channels;
   @Int32()
-  int byteFormat;
-  Pointer<Utf8> matrix;
+  int? byteFormat;
+  Pointer<Utf8>? matrix;
 }
 
 class _Option extends Struct {
-  Pointer<Utf8> key;
-  Pointer<Utf8> value;
-  Pointer<_Option> next;
+  Pointer<Utf8>? key;
+  Pointer<Utf8>? value;
+  Pointer<_Option>? next;
 }
 
 typedef _InitializeNative = Void Function();
@@ -135,7 +135,7 @@ enum OutputType {
   file,
 }
 
-OutputType _intToOutputType(int outputType) {
+OutputType _intToOutputType(int? outputType) {
   return outputType == 2 ? OutputType.file : OutputType.live;
 }
 
@@ -160,16 +160,16 @@ int _byteFormatToInt(ByteFormat byteFormat) {
 /// Wraps the libao library.
 class Libao {
   final DynamicLibrary _lib;
-  _Initialize _initialize;
-  _Shutdown _shutdown;
-  _DriverId _driverId;
-  _DefaultDriverId _defaultDriverId;
-  _DriverInfo _driverInfo;
-  _DriverInfoList _driverInfoList;
-  _OpenLive _openLive;
-  _OpenFile _openFile;
-  _Play _play;
-  _Close _close;
+  late _Initialize _initialize;
+  late _Shutdown _shutdown;
+  late _DriverId _driverId;
+  late _DefaultDriverId _defaultDriverId;
+  late _DriverInfo _driverInfo;
+  late _DriverInfoList _driverInfoList;
+  late _OpenLive _openLive;
+  late _OpenFile _openFile;
+  late _Play _play;
+  late _Close _close;
 
   Libao._(this._lib) {
     _initialize =
@@ -196,14 +196,14 @@ class Libao {
   }
 
   /// Loads the libao library.
-  factory Libao.open([String path]) {
+  factory Libao.open([String? /*?*/ path]) {
     if (path != null && path.isNotEmpty) {
       // nada.
     } else if (Platform.isLinux) {
       path = '/usr/lib/x86_64-linux-gnu/libao.so.4';
     }
 
-    final lib = DynamicLibrary.open(path);
+    final lib = DynamicLibrary.open(path!);
     return Libao._(lib);
   }
 
@@ -254,7 +254,7 @@ class Libao {
     int rate = 44100,
     int channels = 2,
     ByteFormat byteFormat = ByteFormat.little,
-    String matrix,
+    String? matrix,
   }) {
     final sampleFormat = calloc<_SampleFormat>();
     sampleFormat.ref.bits = bits;
@@ -279,7 +279,7 @@ class Libao {
     int rate = 44100,
     int channels = 2,
     ByteFormat byteFormat = ByteFormat.little,
-    String matrix,
+    String? matrix,
   }) {
     final sampleFormat = calloc<_SampleFormat>();
     sampleFormat.ref.bits = bits;

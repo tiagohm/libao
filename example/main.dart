@@ -18,9 +18,6 @@ void main() {
 
   final device = ao.openLive(
     driverId,
-    bits: bits,
-    channels: channels,
-    rate: rate,
   );
 
   const volume = 0.5;
